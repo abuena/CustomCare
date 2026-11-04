@@ -42,9 +42,9 @@ const appointments = {
     { date: "June 24, 2019", shift: "AM Only", caregiver: "Joselita Ramos" }
   ],
   previous: [
-    { date: "January 16, 2019",  shift: "AM Only", caregiver: "Joel Lalus" },
-    { date: "February 1, 2019",  shift: "AM Only", caregiver: "Andre Mata" },
-    { date: "March 6, 2019",     shift: "AM Only", caregiver: "Bullet Bada" }
+    { date: "January 16, 2019", shift: "AM Only", caregiver: "Joel Lalus" },
+    { date: "February 1, 2019", shift: "AM Only", caregiver: "Andre Mata" },
+    { date: "March 6, 2019",    shift: "AM Only", caregiver: "Bullet Bada" }
   ]
 };
 const postedJobs = [];
@@ -56,19 +56,18 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DOW = ["Sun","Mon","Tues","Wed","Thurs","Fri","Sat"];
 
-// Availability of a caregiver on a given date: 'am' | 'pm' | 'full' | 'busy'
+// Availability of a caregiver on a date: 'am' | 'pm' | 'full' | 'busy'
 function availability(cg, date) {
   if (!cg.days.includes(date.getDay())) return "busy";
-  const n = (date.getDate() + cg.id) % 3;
-  return ["am", "pm", "full"][n];
+  return ["am", "pm", "full"][(date.getDate() + cg.id) % 3];
 }
 const shiftLabel = s => ({ am: "AM Only", pm: "PM Only", full: "Full Day" }[s]);
 const fmtDate = d => `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 
-/* Toggle (Yes/No) widget markup + behaviour */
+/* Yes/No switch markup + behaviour */
 function toggleHTML(key, on, disabled = false) {
   return `<button type="button" class="toggle ${on ? "on" : "off"}" data-key="${key}" ${disabled ? "disabled" : ""} aria-pressed="${on}">
-            <span class="knob"></span><span class="text">${on ? "Yes" : "No"}</span></button>`;
+            <span class="text">${on ? "Yes" : "No"}</span><span class="knob"></span></button>`;
 }
 function servicesBoxHTML(state, disabled = false) {
   let html = `<div class="services-box">`;
@@ -101,7 +100,7 @@ function showView(name) {
   ({ scheduled: renderScheduled, search: renderSearch, hire: renderHire, previous: renderPrevious })[name]();
 }
 $$(".tab").forEach(t => t.addEventListener("click", () => {
-  if (t.dataset.view === "search") { search.stage = search.stage === "profile" ? "criteria" : search.stage; }
+  if (t.dataset.view === "search" && search.stage === "profile") search.stage = "criteria";
   showView(t.dataset.view);
 }));
 
@@ -110,9 +109,9 @@ function apptCards(list, emptyMsg) {
   if (!list.length) return `<p class="empty">${emptyMsg}</p>`;
   return list.map(a => `
     <div class="appt-card">
-      Date: ${esc(a.date)}<br>
-      Shift: ${esc(a.shift)}<br>
-      Caregiver Name: <button class="link" data-cg="${esc(a.caregiver)}">${esc(a.caregiver)}</button>
+      <strong>Date:</strong> ${esc(a.date)}<br>
+      <strong>Shift:</strong> ${esc(a.shift)}<br>
+      <strong>Caregiver:</strong> <button class="link" data-cg="${esc(a.caregiver)}">${esc(a.caregiver)}</button>
     </div>`).join("");
 }
 function bindCaregiverLinks(root) {
@@ -151,13 +150,12 @@ function renderSearch() {
 
   let html = `<div class="subnav">
       <button class="${search.mode === "service" ? "active" : ""}" data-mode="service">By Service</button>
-      <span class="sep">|</span>
       <button class="${search.mode === "shift" ? "active" : ""}" data-mode="shift">By Shift</button>
     </div>`;
 
   if (search.mode === "shift") html += shiftCalendarHTML();
   else if (search.stage === "results") html += resultsHTML();
-  else html += `<div class="btn-row"><button class="btn" id="do-search">🔍 SEARCH</button></div>` + servicesBoxHTML(search.criteria);
+  else html += servicesBoxHTML(search.criteria) + `<div class="btn-row"><button class="btn primary" id="do-search">Search caregivers</button></div>`;
 
   el.innerHTML = html;
 
@@ -170,6 +168,7 @@ function renderSearch() {
   if (search.mode === "shift") bindShiftCalendar(el);
   else if (search.stage === "results") {
     $$("[data-id]", el).forEach(b => b.addEventListener("click", () => openProfile(+b.dataset.id, "results")));
+    $("#back-criteria").addEventListener("click", () => { search.stage = "criteria"; renderSearch(); });
   } else {
     bindToggles(el, search.criteria);
     $("#do-search").addEventListener("click", () => { search.stage = "results"; renderSearch(); });
@@ -180,8 +179,7 @@ function renderSearch() {
 function matchScore(cg) {
   const wanted = ALL_KEYS.filter(k => search.criteria[k]);
   if (!wanted.length) return 100;
-  const hit = wanted.filter(k => cg.skills.includes(k)).length;
-  return Math.round(hit / wanted.length * 100);
+  return Math.round(wanted.filter(k => cg.skills.includes(k)).length / wanted.length * 100);
 }
 function resultsHTML() {
   const rows = caregivers
@@ -213,7 +211,7 @@ function shiftCalendarHTML() {
     const avail = caregivers.filter(c => availability(c, d) !== "busy");
     const first = avail.slice(0, 3).map(c => `<li>${esc(c.name.split(" ")[0])}</li>`).join("");
     cells += `<div class="shift-cell">
-        <div class="date">${MONTHS[d.getMonth()].slice(0,4) === "June" ? "June" : MONTHS[d.getMonth()]} ${d.getDate()}, ${DOW[d.getDay()]}</div>
+        <div class="date">${MONTHS[d.getMonth()].slice(0, 3)} ${d.getDate()}, ${DOW[d.getDay()]}</div>
         <ul>${first}</ul>
         ${avail.length > 3 ? `<button class="more" data-date="${d.toISOString()}">See more</button>` : ""}
       </div>`;
@@ -260,8 +258,7 @@ function monthHTML(year, month, cg) {
   for (let n = 1; n <= days; n++) {
     const date = new Date(year, month, n);
     const st = availability(cg, date);
-    const sel = search.selected && +search.selected === +date ? " selected" : "";
-    cells += `<button class="day ${st}${sel}" data-date="${date.toISOString()}" ${st === "busy" ? "disabled" : ""}
+    cells += `<button class="day ${st}" data-date="${date.toISOString()}" ${st === "busy" ? "disabled" : ""}
                 title="${st === "busy" ? "Booked or busy" : shiftLabel(st)}">${n}</button>`;
   }
   return `<div class="month"><div class="month-name">${MONTHS[month]}</div><div class="cal">${cells}</div></div>`;
@@ -284,9 +281,9 @@ function renderProfile(el) {
       <div><i style="background:var(--am)"></i>AM Free</div>
       <div><i style="background:var(--pm)"></i>PM Free</div>
       <div><i style="background:var(--full)"></i>Whole day Free</div>
-      <div><i style="background:#000"></i>Booked or Busy</div>
+      <div><i style="background:#1b2733"></i>Booked or Busy</div>
     </div>
-    <p class="empty" id="book-hint">Click an available day to book ${esc(cg.name.split(" ")[0])}.</p>`;
+    <p class="empty">Click an available day to book ${esc(cg.name.split(" ")[0])}.</p>`;
 
   el.innerHTML = `
     <button class="btn back" id="back-btn">← Back</button>
@@ -300,9 +297,7 @@ function renderProfile(el) {
           <button data-ptab="shifts" class="${search.profileTab === "shifts" ? "active" : ""}">Available shifts</button>
           <button data-ptab="services" class="${search.profileTab === "services" ? "active" : ""}">Services</button>
         </div>
-        ${search.profileTab === "services"
-          ? `<h3>Services</h3>${servicesBoxHTML(state, true)}`
-          : shiftsHTML}
+        ${search.profileTab === "services" ? `<h3>Services</h3>${servicesBoxHTML(state, true)}` : shiftsHTML}
       </div>
     </div>`;
 
@@ -348,7 +343,7 @@ function renderHire() {
       <div class="svc-label"><strong>Services</strong></div>
       ${servicesBoxHTML(jobServices)}
       <div id="job-msg"></div>
-      <div class="btn-row"><button class="btn" type="submit">Post ▶</button></div>
+      <div class="btn-row"><button class="btn primary" type="submit">Post job ▶</button></div>
     </form>
     ${jobsList}`;
 
@@ -360,8 +355,8 @@ function renderHire() {
     const city = $("#j-city").value.trim();
     const postal = $("#j-postal").value.trim().toUpperCase();
     const msg = $("#job-msg");
-    if (!title || !city || !$("#j-postal").checkValidity() || !postal) {
-      msg.innerHTML = `<div class="notice" style="background:#fde9e7;border-color:#c0392b">Please enter a job title, city and a valid postal code (e.g. M5V 2T6).</div>`;
+    if (!title || !city || !postal || !$("#j-postal").checkValidity()) {
+      msg.innerHTML = `<div class="notice" style="background:#fde9e7;border-color:#b42318;color:#7a1810">Please enter a job title, city and a valid postal code (e.g. M5V 2T6).</div>`;
       return;
     }
     postedJobs.push({ title, city, postal, desc: $("#j-desc").value.trim(), services: { ...jobServices } });
