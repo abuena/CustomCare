@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Custom Care – Client Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div class="logo" aria-label="Custom Care">
+        <svg viewBox="0 0 120 90" width="110" height="82" aria-hidden="true">
+          <path d="M5 62 Q60 40 115 62 Q60 52 5 62Z" fill="#1f4e79"/>
+          <g fill="#1f4e79">
+            <circle cx="35" cy="22" r="6"/><rect x="28" y="30" width="14" height="32" rx="6"/>
+            <circle cx="85" cy="22" r="6"/><rect x="78" y="30" width="14" height="32" rx="6"/>
+          </g>
+          <g fill="#67bb52">
+            <circle cx="60" cy="12" r="7"/><path d="M50 22h20l4 46H46z"/>
+          </g>
+        </svg>
+        <span class="logo-text">Custom Care</span>
+      </div>
+
+      <div class="header-text">
+        <p class="tagline">I require care giving services ...</p>
+        <h1 class="welcome">Welcome to the client dashboard</h1>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <nav class="tabs" role="tablist">
+        <button class="tab active" role="tab" data-view="scheduled">My scheduled<br>appointments</button>
+        <button class="tab" role="tab" data-view="search">Search Temp<br>Caregiver</button>
+        <button class="tab" role="tab" data-view="hire">Hire Care giver</button>
+        <button class="tab" role="tab" data-view="previous">Previous<br>appointments</button>
+      </nav>
+
+      <section class="panel">
+        <div id="view-scheduled" class="view"></div>
+        <div id="view-search" class="view" hidden></div>
+        <div id="view-hire" class="view" hidden></div>
+        <div id="view-previous" class="view" hidden></div>
+
+        <footer class="site-footer">
+          <p><a href="#">About</a> | <a href="#">Contact Us</a> | <a href="#">Privacy Policy</a></p>
+          <p class="copyright">Copyright 2019, CustomCare.ca. All rights reserved.</p>
+        </footer>
+      </section>
+    </main>
+  </div>
+
+  <!-- "See more" dialog for the By Shift calendar -->
+  <dialog id="day-dialog">
+    <h3 id="day-dialog-title"></h3>
+    <ul id="day-dialog-list"></ul>
+    <button id="day-dialog-close" class="btn">Close</button>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
